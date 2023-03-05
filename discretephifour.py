@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import eigh_tridiagonal
 
-h = 1  # lattice spacing
+h = 0.5  # lattice spacing
 n = 10
-initial_value = 0.5
+initial_value = 0
 
 
 def recur_forward(n: int) -> np.ndarray:
@@ -63,19 +63,19 @@ def potential_energy(discrete_system: np.ndarray) -> float:
                 + discrete_system[n] ** 2
             )
         ) ** 2
-    return 0.5 * h * sum
+    return (h / 2) * sum
 
 
 def f(x):
-    return h**2 * 6 * x**2
+    return 2 + h**2 * (6 * x**2 - 2)
 
 
 # hZ = [h*n for n in ]
-values = np.append(recur_backward(n)[:0:-1], recur_forward(n - 1))
-W_mat = np.diag(f(values)) - np.eye(2 * n, k=1) - np.eye(2 * n, k=-1)
+values = np.append(recur_backward(n)[:0:-1], recur_forward(n))
+W_mat = np.diag(f(values)) - np.eye(2 * n + 1, k=1) - np.eye(2 * n + 1, k=-1)
 
-w, v = eigh_tridiagonal(f(values), np.ones(19) * -1)
-np.allclose(W_mat @ v - v @ np.diag(w), np.zeros((20, 20)))
+w, v = eigh_tridiagonal(f(values), np.ones(2 * n) * -1)
+# np.allclose(W_mat @ v - v @ np.diag(w), np.zeros((20, 20)))  # test eigenvalues
 
-plt.scatter(range(2 * n), values)
+plt.scatter(range(2 * n + 1), values)
 plt.show()
