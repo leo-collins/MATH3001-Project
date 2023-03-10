@@ -66,7 +66,8 @@ class DiscretePhiFour:
         return (self.values[n + 1] - self.values[n]) / self.h
 
     def F(self, n: int) -> float:
-        """
+        """F is defined as
+        1 - (1/3)(phi_{n+1}^{2} + phi_{n+1}phi_{n} + phi_{n}^{2}).
 
         Args:
             n: index
@@ -127,28 +128,27 @@ class DiscretePhiFour:
         return main_diag, upper_and_lower_diag
 
     def show(self):
+        """Plots the kink."""
         plt.scatter(range(2 * self.N + 1), self.values)
         plt.show()
 
-    def hessian_eigenvalues(self):
+    def hessian_eigenvalues(self) -> list:
+        """Calculates the eigenvalues of the Hessian matrix.
+        Uses Scipy's 'eigh_tridiagonal' function
+
+        Returns:
+            list: list of eigenvalues of the hessian.
+        """
         return eigh_tridiagonal(*self.hessian())[0]
 
-    def quantum_correction(self):
+    def quantum_correction(self) -> float:
+        """Calculates the quantum correction to the ground state energy.
+
+        Returns:
+            float: Quantum correction
+        """
         return (1 / (2 * self.h)) * np.sum(np.sqrt(np.abs(self.hessian_eigenvalues())))
 
-
-# def potential_energy(discrete_system: np.ndarray) -> float:
-#     sum = 0
-#     for n in range(len(discrete_system) - 1):
-#         sum += (1 / 2) * D(discrete_system, n) ** 2 + (1 / 8) * F(
-#             discrete_system, n
-#         ) ** 2
-#     return h * sum
-
-
-# def check_result(discrete_system: npt.NDArray):
-#     for n in range(len(discrete_system) - 1):
-#         print(D(discrete_system, n) - (1 / 2) * F(discrete_system, n))
 
 fig, ax = plt.subplots(dpi=200)
 N = 10
@@ -164,13 +164,6 @@ for h in np.linspace(1.2, 1.7, num=6):
         num=100,
     ):
         kink_translated = DiscretePhiFour(N, h, b)
-        # values.append(
-        #     (
-        #         np.sum(np.sqrt(np.abs(kink_translated.hessian_eigenvalues())))
-        #         - np.sqrt(np.sum(np.abs(kink_vacuum.hessian_eigenvalues())))
-        #     )
-        #     - kink_vac_correction
-        # )
         values.append(kink_translated.quantum_correction() - kink_vac_correction)
         b_h.append(b / kink_vacuum.values[kink_vacuum.N + 1])
     ax.plot(b_h, values, label=f"h={h:.1f}")
