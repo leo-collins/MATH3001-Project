@@ -6,7 +6,9 @@ from scipy.linalg import eigh_tridiagonal
 class DiscretePhiFourSystem:
     """Object representing the topological discrete phi^four system."""
 
-    def __init__(self, N: int, h: float, initial_value: float) -> None:
+    def __init__(
+        self, N: int, h: float, initial_value: float, vac: bool = False
+    ) -> None:
         """Initialises the DiscretePhiFour class.
 
         Args:
@@ -19,38 +21,46 @@ class DiscretePhiFourSystem:
         self.N = N
         self.h = h
         self.initial_value = initial_value
-        self.values = np.array([self.initial_value])
-        for i in range(self.N):
-            x = (
-                -(1 / 2)
-                * (
-                    self.h * self.values[-1]
-                    - np.sqrt(
-                        -3 * self.h**2 * self.values[-1] ** 2
-                        + 12 * self.h**2
-                        + 36 * self.h * self.values[-1]
-                        + 36
+        if vac == True:
+            self.values = np.ones(2 * self.N + 1)
+        else:
+            self.values = np.array([self.initial_value])
+            # Calculates the system using the formulae (19) and (20).
+            for i in range(self.N):
+                x = (
+                    -(1 / 2)
+                    * (
+                        self.h * self.values[-1]
+                        - np.sqrt(
+                            -3 * self.h**2 * self.values[-1] ** 2
+                            + 12 * self.h**2
+                            + 36 * self.h * self.values[-1]
+                            + 36
+                        )
+                        + 6
                     )
-                    + 6
+                    / self.h
                 )
-                / self.h
-            )
-            self.values = np.append(self.values, x)
-            y = (
-                -(1 / 2)
-                * (
-                    self.h * self.values[0]
-                    + np.sqrt(
-                        -3 * self.h**2 * self.values[0] ** 2
-                        + 12 * self.h**2
-                        - 36 * self.h * self.values[0]
-                        + 36
+                self.values = np.append(
+                    self.values, x
+                )  # Appends phi_{n+1} to the end of the list.
+                y = (
+                    -(1 / 2)
+                    * (
+                        self.h * self.values[0]
+                        + np.sqrt(
+                            -3 * self.h**2 * self.values[0] ** 2
+                            + 12 * self.h**2
+                            - 36 * self.h * self.values[0]
+                            + 36
+                        )
+                        - 6
                     )
-                    - 6
+                    / self.h
                 )
-                / self.h
-            )
-            self.values = np.insert(self.values, 0, y)
+                self.values = np.insert(
+                    self.values, 0, y
+                )  # Inserts phi_{n} at the start of the list.
         pass
 
     def D(self, n: int) -> float:
@@ -58,9 +68,6 @@ class DiscretePhiFourSystem:
 
         Args:
             n: index
-
-        Returns:
-            float: (phi_{n+1} - phi_{n}) / h
         """
         return (self.values[n + 1] - self.values[n]) / self.h
 
@@ -70,9 +77,6 @@ class DiscretePhiFourSystem:
 
         Args:
             n: index
-
-        Returns:
-            float: _description_
         """
         return 1 - (1 / 3) * (
             self.values[n + 1] ** 2
@@ -128,10 +132,12 @@ class DiscretePhiFourSystem:
 
     def show(self):
         """Plots the kink."""
-        plt.scatter(range(2 * self.N + 1), self.values)
+        plt.scatter(range(-self.N, self.N + 1), self.values)
+        plt.xlabel("n")
+        plt.ylabel(r"$\phi_{n}$")
         plt.show()
 
-    def hessian_eigenvalues(self) -> list:
+    def spectra(self) -> list:
         """Calculates the eigenvalues of the Hessian matrix.
         Uses Scipy's 'eigh_tridiagonal' function
 
@@ -146,4 +152,4 @@ class DiscretePhiFourSystem:
         Returns:
             float: Quantum correction
         """
-        return (1 / (2 * self.h)) * np.sum(np.sqrt(np.abs(self.hessian_eigenvalues())))
+        return (1 / (2 * self.h)) * np.sum(np.sqrt(np.abs(self.spectra())))
