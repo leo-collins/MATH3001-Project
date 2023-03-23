@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.linalg import eigh_tridiagonal
+from scipy.linalg import eigvalsh_tridiagonal
 
 
 class DiscretePhiFourSystem:
@@ -17,6 +17,7 @@ class DiscretePhiFourSystem:
             h: Lattice spacing of the system.
             initial_value: Value to start recursion from.
             Will be the central value.
+            vac: Determines whether system is the vacuum solution phi=1.
         """
         self.N = N
         self.h = h
@@ -108,12 +109,15 @@ class DiscretePhiFourSystem:
                 main_diag.append(x)
                 upper_and_lower_diag.append(y)
             elif 0 < i < 2 * self.N:
-                x = 2 * ((1 / self.h) + (self.h / 6) * (self.values[i] ** 2 - 1)) + (
-                    self.h / 12
-                ) * (
-                    self.values[i - 1] ** 2
-                    + self.values[i + 1] ** 2
-                    + 2 * self.values[i] * (self.values[i + 1] + self.values[i - 1])
+                x = (
+                    (2 / self.h)
+                    + (self.h / 3) * (self.values[i] ** 2 - 1)
+                    + (self.h / 12)
+                    * (
+                        self.values[i - 1] ** 2
+                        + self.values[i + 1] ** 2
+                        + 2 * self.values[i] * (self.values[i + 1] + self.values[i - 1])
+                    )
                 )
                 y = (-1 / self.h) + (self.h / 12) * (
                     (self.values[i + 1] + self.values[i]) ** 2 - 1
@@ -144,7 +148,7 @@ class DiscretePhiFourSystem:
         Returns:
             list: list of eigenvalues of the hessian.
         """
-        return eigh_tridiagonal(*self.hessian())[0]
+        return eigvalsh_tridiagonal(*self.hessian()
 
     def quantum_correction(self) -> float:
         """Calculates the quantum correction to the ground state energy.

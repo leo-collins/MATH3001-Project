@@ -1,7 +1,7 @@
 from discretephifour import DiscretePhiFourSystem
 import matplotlib.pyplot as plt
 
-fig, ax = plt.subplots(dpi=200)
+fig, ax = plt.subplots(dpi=400)
 N = 10
 
 for h in [0.5, 1, 2]:
